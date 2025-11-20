@@ -858,25 +858,30 @@ public class CPU {
 		cpuLog.append("STXR \t X" + valReg + ", X" + outcomeReg + ", [X" + baseAddressReg + ", #" + offset + "] \n");
 	}
 
-	private void MOVZ(int destReg, int immediate, int quadrantShift) {
-		if (destReg == XZR) {
-			cpuLog.append("Ignored attempted assignment to XZR. \n");
-		} else {
-			XRegisterFile[destReg].writeDoubleWord(immediate << quadrantShift);
-			cpuLog.append("MOVZ \t X" + destReg + ", #" + immediate + ", LSL #" + quadrantShift + " \n");
-		}
-	}
+    private void MOVZ(int destReg, int immediate, int quadrantShift) {
+        if (destReg == XZR) {
+            cpuLog.append("Ignored attempted assignment to XZR.\n");
+        } else {
+            long value = ((long) immediate << quadrantShift) & 0xFFFFFFFFFFFFFFFFL; // 64-bit mask
+            XRegisterFile[destReg].writeDoubleWord(value);
+            cpuLog.append("MOVZ \t X" + destReg + ", #" + immediate + ", LSL #" + quadrantShift + "\n");
+        }
+    }
 
-	private void MOVK(int destReg, int immediate, int quadrantShift) {
-		if (destReg == XZR) {
-			cpuLog.append("Ignored attempted assignment to XZR. \n");
-		} else {
-			XRegisterFile[destReg].writeDoubleWord(XRegisterFile[destReg].readDoubleWord() | (immediate << quadrantShift));
-			cpuLog.append("MOVK \t X" + destReg + ", #" + immediate + ", LSL #" + quadrantShift + " \n");
-		}
-	}
+    private void MOVK(int destReg, int immediate, int quadrantShift) {
+        if (destReg == XZR) {
+            cpuLog.append("Ignored attempted assignment to XZR.\n");
+        } else {
+            long currentValue = XRegisterFile[destReg].readDoubleWord();
+            long shiftedImmediate = ((long) immediate << quadrantShift) & 0xFFFFFFFFFFFFFFFFL; // 64-bit mask
+            long result = currentValue | shiftedImmediate;
+            XRegisterFile[destReg].writeDoubleWord(result);
+            cpuLog.append("MOVK \t X" + destReg + ", #" + immediate + ", LSL #" + quadrantShift + "\n");
+        }
+    }
 
-	private void CBZ(int conditionReg, int branchIndex) {
+
+    private void CBZ(int conditionReg, int branchIndex) {
 		if (XRegisterFile[conditionReg].readDoubleWord() == 0) {
 			instructionIndex = branchIndex;
 		}
