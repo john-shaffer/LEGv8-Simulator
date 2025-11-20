@@ -862,7 +862,8 @@ public class CPU {
         if (destReg == XZR) {
             cpuLog.append("Ignored attempted assignment to XZR.\n");
         } else {
-            long value = ((long) immediate << quadrantShift) & 0xFFFFFFFFFFFFFFFFL; // 64-bit mask
+            // MOVZ zeroes the entire register, then inserts the 16-bit immediate at the specified position
+            long value = ((long) immediate & 0xFFFFL) << quadrantShift; // Only 16 bits shifted
             XRegisterFile[destReg].writeDoubleWord(value);
             cpuLog.append("MOVZ \t X" + destReg + ", #" + immediate + ", LSL #" + quadrantShift + "\n");
         }
@@ -873,12 +874,15 @@ public class CPU {
             cpuLog.append("Ignored attempted assignment to XZR.\n");
         } else {
             long currentValue = XRegisterFile[destReg].readDoubleWord();
-            long shiftedImmediate = ((long) immediate << quadrantShift) & 0xFFFFFFFFFFFFFFFFL; // 64-bit mask
-            long result = currentValue | shiftedImmediate;
+            long mask = ~(0xFFFFL << quadrantShift); // Clear 16-bit field
+            long clearedValue = currentValue & mask;
+            long shiftedImmediate = ((long) immediate & 0xFFFFL) << quadrantShift; // Insert only 16 bits
+            long result = clearedValue | shiftedImmediate;
             XRegisterFile[destReg].writeDoubleWord(result);
             cpuLog.append("MOVK \t X" + destReg + ", #" + immediate + ", LSL #" + quadrantShift + "\n");
         }
     }
+
 
 
     private void CBZ(int conditionReg, int branchIndex) {
