@@ -542,6 +542,7 @@ public class WebApp implements EntryPoint {
         initAssembleButt();
         initExecModeDropdown();
         initExecuteButt();
+        initRunAllButt();
         initHelpButt();
         buildControlPanel();
     }
@@ -640,6 +641,31 @@ public class WebApp implements EntryPoint {
                     }
                 } else {
                     executeButt.setEnabled(false);
+                    runAllButt.setEnabled(false);
+                }
+            }
+        });
+    }
+
+    // initialises the "Run All" button in the control panel
+    private void initRunAllButt() {
+        runAllButt = new Button("Run All");
+        runAllButt.setHeight("25px");
+        runAllButt.setEnabled(false);
+        runAllButt.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                if (currentExMode.equals(executionModes.getSelectedItemText())) {
+                    switch (currentExMode) {
+                        case SINGLE_CYCLE_VISUAL:
+                            runAllSingleCycle();
+                            break;
+                        case PIPELINE_VISUAL:
+                            runAllPipeline();
+                            break;
+                    }
+                } else {
+                    runAllButt.setEnabled(false);
                 }
             }
         });
@@ -666,8 +692,12 @@ public class WebApp implements EntryPoint {
         buttonPanel.add(padding2);
         buttonPanel.add(executeButt);
         HorizontalPanel padding3 = new HorizontalPanel();
-        padding3.setWidth("40px");
+        padding3.setWidth("10px");
         buttonPanel.add(padding3);
+        buttonPanel.add(runAllButt);
+        HorizontalPanel padding4 = new HorizontalPanel();
+        padding4.setWidth("40px");
+        buttonPanel.add(padding4);
         buttonPanel.add(helpButt);
         controlPanel.add(buttonPanel);
     }
@@ -847,10 +877,12 @@ public class WebApp implements EntryPoint {
         compileErrors = singleCycleSim.getCompileErrorMsgs();
         if (compileErrors.size() != 0) {
             executeButt.setEnabled(false);
+            runAllButt.setEnabled(false);
             setCompileErrors();
             editor.setAnnotations();
         } else {
             executeButt.setEnabled(true);
+            runAllButt.setEnabled(true);
         }
     }
 
@@ -871,10 +903,12 @@ public class WebApp implements EntryPoint {
         compileErrors = pipelineSim.getCompileErrorMsgs();
         if (compileErrors.size() != 0) {
             executeButt.setEnabled(false);
+            runAllButt.setEnabled(false);
             setCompileErrors();
             editor.setAnnotations();
         } else {
             executeButt.setEnabled(true);
+            runAllButt.setEnabled(true);
         }
     }
 
@@ -925,6 +959,7 @@ public class WebApp implements EntryPoint {
         runtimeError = singleCycleSim.getRuntimeErrorMsg();
         if (runtimeError != null) {
             executeButt.setEnabled(false);
+            runAllButt.setEnabled(false);
             setError(runtimeError.getMsg(), runtimeError.getLineNumber());
             editor.setAnnotations();
         }
@@ -945,6 +980,65 @@ public class WebApp implements EntryPoint {
         runtimeError = pipelineSim.getRuntimeErrorMsg();
         if (runtimeError != null) {
             executeButt.setEnabled(false);
+            runAllButt.setEnabled(false);
+            setError(runtimeError.getMsg(), runtimeError.getLineNumber());
+            editor.setAnnotations();
+        }
+    }
+
+    // executes all remaining instructions in single cycle mode without animation
+    private void runAllSingleCycle() {
+        while (singleCycleSim.getInstructionIndex() < singleCycleSim.getNumInstructions()) {
+            singleCycleSim.executeInstruction();
+            runtimeError = singleCycleSim.getRuntimeErrorMsg();
+            if (runtimeError != null) {
+                break;
+            }
+        }
+        editor.removeAllMarkers();
+        editor.addMarker(AceRange.create(singleCycleSim.getCurrentLineNumber(), 0,
+                singleCycleSim.getCurrentLineNumber(), 41), "ace_selection",
+                AceMarkerType.FULL_LINE, false);
+        cpuLog.setText(singleCycleSim.getCpuLog());
+        updateRegisterLabels(singleCycleSim);
+        updateFlagLabels(singleCycleSim);
+        updateStackLabels(singleCycleSim);
+        if (singleCycleSim.getCurrentInstruction() != null) {
+            scDatapath.updateDatapath(singleCycleSim.getCurrentInstruction(),
+                    singleCycleSim.getBranchTaken(), singleCycleSim.getSTXRSucceed(),
+                    singleCycleSim.getCurrentInsIndex(),
+                    code.get(singleCycleSim.getCurrentInstruction().getLineNumber()).getArgs().get(0));
+        }
+        executeButt.setEnabled(false);
+        runAllButt.setEnabled(false);
+        if (runtimeError != null) {
+            setError(runtimeError.getMsg(), runtimeError.getLineNumber());
+            editor.setAnnotations();
+        }
+    }
+
+    // clocks the pipeline until execution is complete in pipeline mode
+    private void runAllPipeline() {
+        while (!pipelineSim.isComplete()) {
+            pipelineSim.clock();
+            runtimeError = pipelineSim.getRuntimeErrorMsg();
+            if (runtimeError != null) {
+                break;
+            }
+        }
+        editor.removeAllMarkers();
+        if (pipelineSim.getCurrentLineNumber() != -1) {
+            editor.addMarker(AceRange.create(pipelineSim.getCurrentLineNumber(), 0,
+                    pipelineSim.getCurrentLineNumber(), 41), "ace_selection",
+                    AceMarkerType.FULL_LINE, false);
+        }
+        cpuLog.setText(pipelineSim.getPipelineLog());
+        updateRegisterLabels(pipelineSim);
+        updateStackLabels(pipelineSim);
+        updateFlagLabels(pipelineSim);
+        executeButt.setEnabled(false);
+        runAllButt.setEnabled(false);
+        if (runtimeError != null) {
             setError(runtimeError.getMsg(), runtimeError.getLineNumber());
             editor.setAnnotations();
         }
@@ -1027,6 +1121,7 @@ public class WebApp implements EntryPoint {
     private ArrayList<Error> compileErrors;
     private ArrayList<TextLine> code;
     private Button executeButt;
+    private Button runAllButt;
     private Button assembleButt;
     private Button helpButt;
     private RegisterPanel[] XRegPanels = new RegisterPanel[32];

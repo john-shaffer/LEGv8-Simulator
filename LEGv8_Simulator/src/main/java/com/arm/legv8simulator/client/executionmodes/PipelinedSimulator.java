@@ -597,6 +597,13 @@ public class PipelinedSimulator extends LEGv8_Simulator {
 		}
 	}
 	
+	/**
+	 * @return	<code>true</code> if all instructions have been executed and the pipeline is empty
+	 */
+	public boolean isComplete() {
+		return cpu.getInstructionIndex() == cpuInstructions.size() && isPipelineEmpty();
+	}
+
 	@Override
 	public long getCPURegister(RegisterType type, int index) {
 		return visibleState.getRegister(type, index);

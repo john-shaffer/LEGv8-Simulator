@@ -185,6 +185,13 @@ public abstract class LEGv8_Simulator {
 	}
 	
 	/**
+	 * @return	the number of instructions in the program
+	 */
+	public int getNumInstructions() {
+		return cpuInstructions.size();
+	}
+
+	/**
 	 * @return the contents of the CPU log
 	 */
 	public String getCpuLog() {
