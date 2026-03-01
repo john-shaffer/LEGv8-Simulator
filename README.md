@@ -1,6 +1,9 @@
 
 # Graphical-Micro-Architecture-Simulator
 
+Forked from https://github.com/simdeistud/LEGv8-Simulator,
+itself a fork of https://github.com/arm-university/Graphical-Micro-Architecture-Simulator.
+
 The Graphical Micro-Architecture Simulator is a web browser-based simulator for a subset of the Arm instructions. Specifically, this tool provides the expected execution results for the LEGv8 instructions, which is a subset of Arm®v8-A instructions based on the [Computer Organization and Design (Arm Edition)](https://www.elsevier.com/books/computer-organization-and-design-arm-edition/patterson/978-0-12-801733-3) textbook by David A. Patterson & John L. Hennessy. This simulator can be run locally on a PC, and is offered exclusively and at no cost to academics, teaching staff, and learners worldwide.
 
 ### You can try online the forked simulator [HERE](https://simdeistud.github.io/LEGv8-Simulator/).
