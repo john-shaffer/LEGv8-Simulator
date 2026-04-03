@@ -72,6 +72,7 @@ public class TextLine {
 			case RBRACKET : break;
 			case LABEL : label = t.getData().substring(0, t.getData().length()-1); break;
 			case XREGISTER : args.add(t.getData()); break;
+			case WREGISTER : args.add(t.getData()); break;
 			case SREGISTER : args.add(t.getData()); break;
 			case DREGISTER : args.add(t.getData()); break;
 			case IMMEDIATE : args.add(t.getData()); break;

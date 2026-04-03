@@ -516,6 +516,31 @@ public class CPU {
 			break;
 		default : {}
 		}
+		if (ins.isWordOperation()) {
+			applyWordMask(ins);
+		}
+	}
+
+	// Zero-extend the destination register to 64 bits when W (32-bit) registers are used
+	private void applyWordMask(Instruction ins) {
+		int[] args = ins.getArgs();
+		if (args.length == 0) return;
+		int destReg = args[0];
+		if (destReg == XZR) return;
+		switch (ins.getMnemonic()) {
+		case B: case BL: case BR:
+		case BEQ: case BNE: case BHS: case BLO: case BHI: case BLS:
+		case BGE: case BLT: case BGT: case BLE: case BMI: case BPL:
+		case BVS: case BVC:
+		case STUR: case STURW: case STURH: case STURB: case STURS: case STURD:
+		case STXR:
+		case FCMPS: case FCMPD:
+		case CBZ: case CBNZ:
+			break;
+		default:
+			XRegisterFile[destReg].writeDoubleWord(
+				XRegisterFile[destReg].readDoubleWord() & 0x00000000FFFFFFFFL);
+		}
 	}
 
 	private void ADD(int destReg, int op1Reg, int op2Reg) {

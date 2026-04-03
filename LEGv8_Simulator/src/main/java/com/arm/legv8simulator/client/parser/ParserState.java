@@ -64,7 +64,8 @@ public enum ParserState {
     XR1(false, new TokenType[]{TokenType.XREGISTER}) { @Override
     	public ParserState transition(Token t) throws InvalidTokenException {
             switch (t.getType()) {
-            	case 		XREGISTER : return XR2;
+            	case XREGISTER : return XR2;
+            	case WREGISTER : return XR2;
             	default : throw new InvalidTokenException(expected[0]);
             }
         }
@@ -74,11 +75,12 @@ public enum ParserState {
             throw new UnexpectedTokenException();
         }
     },
-    XRR1(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA, 
+    XRR1(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA,
     		TokenType.XREGISTER}) { @Override
     	public ParserState transition(Token t) throws InvalidTokenException {
             switch (t.getType()) {
             	case XREGISTER : return XRR2;
+            	case WREGISTER : return XRR2;
             	default : throw new InvalidTokenException(expected[0]);
             }
         }
@@ -95,6 +97,7 @@ public enum ParserState {
     	public ParserState transition(Token t) throws InvalidTokenException {
             switch (t.getType()) {
             	case XREGISTER : return XRR4;
+            	case WREGISTER : return XRR4;
             	default : throw new InvalidTokenException(expected[0]);
             }
         }
@@ -164,11 +167,12 @@ public enum ParserState {
             throw new UnexpectedTokenException();
         }
     },
-    XRRR1(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA, 
+    XRRR1(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA,
     		TokenType.XREGISTER, TokenType.COMMA, TokenType.XREGISTER}) { @Override
     	public ParserState transition(Token t) throws InvalidTokenException {
             switch (t.getType()) {
             	case XREGISTER : return XRRR2;
+            	case WREGISTER : return XRRR2;
             	default : throw new InvalidTokenException(expected[0]);
             }
         }
@@ -182,11 +186,12 @@ public enum ParserState {
             }
         }
     },
-    XRRR3(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA, 
+    XRRR3(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA,
     		TokenType.XREGISTER}) { @Override
     	public ParserState transition(Token t) throws InvalidTokenException {
             switch (t.getType()) {
             	case XREGISTER : return XRRR4;
+            	case WREGISTER : return XRRR4;
             	default : throw new InvalidTokenException(expected[0]);
             }
         }
@@ -203,6 +208,7 @@ public enum ParserState {
     	public ParserState transition(Token t) throws InvalidTokenException {
             switch (t.getType()) {
             	case XREGISTER : return RRR6;
+            	case WREGISTER : return RRR6;
             	default : throw new InvalidTokenException(expected[0]);
             }
         }
@@ -298,11 +304,12 @@ public enum ParserState {
             }
         }
     },
-    XRI1(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA, 
+    XRI1(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA,
     		TokenType.IMMEDIATE}) { @Override
     	public ParserState transition(Token t) throws InvalidTokenException {
             switch (t.getType()) {
             	case XREGISTER : return XRI2;
+            	case WREGISTER : return XRI2;
             	default : throw new InvalidTokenException(expected[0]);
             }
         }
@@ -328,11 +335,12 @@ public enum ParserState {
             throw new UnexpectedTokenException();
         }
     },
-    XRRI1(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA, 
+    XRRI1(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA,
     		TokenType.XREGISTER, TokenType.COMMA, TokenType.IMMEDIATE}) { @Override
     	public ParserState transition(Token t) throws InvalidTokenException {
             switch (t.getType()) {
             	case XREGISTER : return XRRI2;
+            	case WREGISTER : return XRRI2;
             	default : throw new InvalidTokenException(expected[0]);
             }
         }
@@ -346,11 +354,12 @@ public enum ParserState {
             }
         }
     },
-    XRRI3(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA, 
+    XRRI3(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA,
     		TokenType.IMMEDIATE}) { @Override
     	public ParserState transition(Token t) throws InvalidTokenException {
             switch (t.getType()) {
             	case XREGISTER : return XRRI4;
+            	case WREGISTER : return XRRI4;
             	default : throw new InvalidTokenException(expected[0]);
             }
         }
@@ -376,12 +385,13 @@ public enum ParserState {
             throw new UnexpectedTokenException();
         }
     },
-    XRM1(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA, 
-    		TokenType.LBRACKET, TokenType.XREGISTER, TokenType.COMMA, 
+    XRM1(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA,
+    		TokenType.LBRACKET, TokenType.XREGISTER, TokenType.COMMA,
     		TokenType.IMMEDIATE, TokenType.RBRACKET}) { @Override
     	public ParserState transition(Token t) throws InvalidTokenException {
             switch (t.getType()) {
             	case XREGISTER : return RM2;
+            	case WREGISTER : return RM2;
             	default : throw new InvalidTokenException(expected[0]);
             }
         }
@@ -424,11 +434,12 @@ public enum ParserState {
             }
         }
     },
-    RM4(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA, 
+    RM4(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA,
     		TokenType.IMMEDIATE, TokenType.RBRACKET}) { @Override
     	public ParserState transition(Token t) throws InvalidTokenException {
             switch (t.getType()) {
             	case XREGISTER : return RM5;
+            	case WREGISTER : return RM5;
             	default : throw new InvalidTokenException(expected[0]);
             }
         }
@@ -464,12 +475,13 @@ public enum ParserState {
             }
         }
     },
-    XRRM1(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA, TokenType.XREGISTER, 
-    		TokenType.COMMA, TokenType.LBRACKET, TokenType.XREGISTER, TokenType.COMMA, 
+    XRRM1(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA, TokenType.XREGISTER,
+    		TokenType.COMMA, TokenType.LBRACKET, TokenType.XREGISTER, TokenType.COMMA,
     		TokenType.IMMEDIATE, TokenType.RBRACKET}) { @Override
     	public ParserState transition(Token t) throws InvalidTokenException {
             switch (t.getType()) {
             	case XREGISTER : return XRRM2;
+            	case WREGISTER : return XRRM2;
             	default : throw new InvalidTokenException(expected[0]);
             }
         }
@@ -484,12 +496,13 @@ public enum ParserState {
             }
         }
     },
-    XRRM3(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA, 
-    		TokenType.LBRACKET, TokenType.XREGISTER, TokenType.COMMA, 
+    XRRM3(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA,
+    		TokenType.LBRACKET, TokenType.XREGISTER, TokenType.COMMA,
     		TokenType.IMMEDIATE, TokenType.RBRACKET}) { @Override
     	public ParserState transition(Token t) throws InvalidTokenException {
             switch (t.getType()) {
             	case XREGISTER : return XRRM4;
+            	case WREGISTER : return XRRM4;
             	default : throw new InvalidTokenException(expected[0]);
             }
         }
@@ -512,11 +525,12 @@ public enum ParserState {
             }
         }
     },
-    XRRM6(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA, 
+    XRRM6(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA,
     		TokenType.IMMEDIATE, TokenType.RBRACKET}) { @Override
     	public ParserState transition(Token t) throws InvalidTokenException {
             switch (t.getType()) {
             	case XREGISTER : return XRRM7;
+            	case WREGISTER : return XRRM7;
             	default : throw new InvalidTokenException(expected[0]);
             }
         }
@@ -552,11 +566,12 @@ public enum ParserState {
             }
         }
     },
-    XRISI1(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA, TokenType.IMMEDIATE, 
+    XRISI1(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA, TokenType.IMMEDIATE,
     		TokenType.COMMA, TokenType.XMNEMONIC_RRI, TokenType.IMMEDIATE}) { @Override
     	public ParserState transition(Token t) throws InvalidTokenException {
             switch (t.getType()) {
             	case XREGISTER : return XRISI2;
+            	case WREGISTER : return XRISI2;
             	default : throw new InvalidTokenException(expected[0]);
             }
         }
@@ -629,11 +644,12 @@ public enum ParserState {
     /*L3(true, null) { @Override											// THIS SEEMS TO BE AN UNREACHABLE LOOP?	
     	public ParserState transition(Token t) { return L3; }
     },*/
-    XRL1(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA, 
+    XRL1(false, new TokenType[]{TokenType.XREGISTER, TokenType.COMMA,
     		TokenType.IDENTIFIER}) { @Override
     	public ParserState transition(Token t) throws InvalidTokenException {
             switch (t.getType()) {
             	case XREGISTER : return XRL2;
+            	case WREGISTER : return XRL2;
             	default : throw new InvalidTokenException(expected[0]);
             }
         }

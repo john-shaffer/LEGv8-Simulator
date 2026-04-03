@@ -43,8 +43,35 @@ public class Decoder {
 	 * @see Mnemonic
 	 * @see Instruction
 	 */
-	public static Instruction getInstruction(Mnemonic mnemonic, ArrayList<String> args, 
-			int lineNumber, HashMap<String, Integer> branchTable) 
+	private static boolean isWordRegister(String s) {
+		if (s == null || s.length() < 2) return false;
+		char first = s.charAt(0);
+		if (first != 'W' && first != 'w') return false;
+		if (s.equalsIgnoreCase("WZR") || s.equalsIgnoreCase("WSP")) return true;
+		for (int i = 1; i < s.length(); i++) {
+			if (!Character.isDigit(s.charAt(i))) return false;
+		}
+		return true;
+	}
+
+	private static boolean isWordOperation(ArrayList<String> args) {
+		for (String arg : args) {
+			if (isWordRegister(arg)) return true;
+		}
+		return false;
+	}
+
+	public static Instruction getInstruction(Mnemonic mnemonic, ArrayList<String> args,
+			int lineNumber, HashMap<String, Integer> branchTable)
+					throws UndefinedLabelException, ImmediateOutOfBoundsException {
+		boolean wordOp = isWordOperation(args);
+		Instruction inst = getInstructionInternal(mnemonic, args, lineNumber, branchTable);
+		if (inst != null && wordOp) inst.setWordOperation(true);
+		return inst;
+	}
+
+	private static Instruction getInstructionInternal(Mnemonic mnemonic, ArrayList<String> args,
+			int lineNumber, HashMap<String, Integer> branchTable)
 					throws UndefinedLabelException, ImmediateOutOfBoundsException {
 		switch (mnemonic) {
 		case ADD :
@@ -323,23 +350,27 @@ public class Decoder {
 	}
 	
 	private static int decodeRegister(String reg) {
-		
+
 		switch (reg) {
 		case "XZR" : ;
-		case "xzr" : return CPU.XZR;
+		case "xzr" : ;
+		case "WZR" : ;
+		case "wzr" : return CPU.XZR;
 		case "IP0" : ;
 		case "ip0" : return CPU.IP0;
 		case "IP1" : ;
 		case "ip1" : return CPU.IP1;
-		case "SP" : ;
-		case "sp" : return CPU.SP;
-		case "FP" : ;
-		case "fp" : return CPU.FP;
-		case "LR" : ;
-		case "lr" : return CPU.LR;
+		case "SP"  : ;
+		case "sp"  : ;
+		case "WSP" : ;
+		case "wsp" : return CPU.SP;
+		case "FP"  : ;
+		case "fp"  : return CPU.FP;
+		case "LR"  : ;
+		case "lr"  : return CPU.LR;
 		default : return Integer.parseInt(reg.substring(1));
 		}
-		
+
 	}
 	
 	private static int parseImmediate(String imm) {

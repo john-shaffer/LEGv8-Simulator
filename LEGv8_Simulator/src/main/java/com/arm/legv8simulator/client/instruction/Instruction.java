@@ -59,9 +59,22 @@ public class Instruction {
 	public ControlUnitConfiguration getControlSignals() {
 		return controlSignals;
 	}
-	
+
+	/**
+	 * @return	true if this instruction uses W (32-bit) registers and the
+	 *          destination should be zero-extended to 64 bits after execution
+	 */
+	public boolean isWordOperation() {
+		return wordOperation;
+	}
+
+	public void setWordOperation(boolean wordOperation) {
+		this.wordOperation = wordOperation;
+	}
+
 	private Mnemonic mnemonic;
 	private int[] args;
 	private int editorLineNumber;
 	private ControlUnitConfiguration controlSignals;
+	private boolean wordOperation = false;
 }
