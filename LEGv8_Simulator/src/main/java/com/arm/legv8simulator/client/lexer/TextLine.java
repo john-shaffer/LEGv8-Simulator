@@ -50,7 +50,91 @@ public class TextLine {
 	 * 
 	 * @return	the error message from the <code>Parser</code>; <code>null</code> if no error present.
 	 */
+	private String parseDirective() {
+		String trimmed = lineNoComment.trim();
+		String[] parts = trimmed.split("[ \t]+", 2);
+		String name = parts[0].toLowerCase();
+		String args = parts.length > 1 ? parts[1].trim() : "";
+		switch (name) {
+		case ".text":   return parseTextDirective(args);
+		case ".global": return parseGlobalDirective(args);
+		case ".arch":   return parseArchDirective(args);
+		case ".type":   return parseTypeDirective(args);
+		default: return "Unknown directive: '" + parts[0] + "'";
+		}
+	}
+
+	private String parseTextDirective(String args) {
+		if (!args.isEmpty()) {
+			return "Directive '.text' takes no arguments";
+		}
+		return null;
+	}
+
+	private String parseGlobalDirective(String args) {
+		if (args.isEmpty()) {
+			return "Directive '.global' requires a symbol name";
+		}
+		if (!isValidIdentifier(args)) {
+			return "Directive '.global': invalid symbol name '" + args + "'";
+		}
+		return null;
+	}
+
+	// Accepts armv8-a, armv8-a+fp+simd, armv8.1-a, armv8.2-a, aarch64, etc.
+	// Rejects 32-bit architectures (armv7, armv6, ...).
+	private String parseArchDirective(String args) {
+		if (args.isEmpty()) {
+			return "Directive '.arch' requires an architecture name";
+		}
+		String base = args.toLowerCase();
+		if (!base.startsWith("armv8") && !base.startsWith("armv9") && !base.startsWith("aarch64")) {
+			return "Incompatible architecture '" + args + "': simulator requires ARMv8-A (64-bit) or later";
+		}
+		return null;
+	}
+
+	// Expects:  .type  <symbol>, %function  (or #function, %object, etc.)
+	private String parseTypeDirective(String args) {
+		if (args.isEmpty()) {
+			return "Directive '.type' requires arguments";
+		}
+		int comma = args.indexOf(',');
+		if (comma < 0) {
+			return "Directive '.type' expects '<symbol>, <type>'";
+		}
+		String symbol = args.substring(0, comma).trim();
+		String type   = args.substring(comma + 1).trim();
+		if (!isValidIdentifier(symbol)) {
+			return "Directive '.type': invalid symbol name '" + symbol + "'";
+		}
+		if (type.isEmpty() || (type.charAt(0) != '%' && type.charAt(0) != '#')) {
+			return "Directive '.type': type specifier must start with '%' or '#' (e.g. '%function')";
+		}
+		for (int i = 1; i < type.length(); i++) {
+			char c = type.charAt(i);
+			if (!Character.isLetter(c) && c != '_') {
+				return "Directive '.type': invalid type specifier '" + type + "'";
+			}
+		}
+		return null;
+	}
+
+	private static boolean isValidIdentifier(String s) {
+		if (s.isEmpty()) return false;
+		char first = s.charAt(0);
+		if (!Character.isLetter(first) && first != '_') return false;
+		for (int i = 1; i < s.length(); i++) {
+			char c = s.charAt(i);
+			if (!Character.isLetterOrDigit(c) && c != '_') return false;
+		}
+		return true;
+	}
+
 	public String parse() {
+		if (lineNoComment.trim().startsWith(".")) {
+			return parseDirective();
+		}
 		String error = Parser.parseLine(tokens);
 		parsed = (error == null);
 		if (parsed) {
