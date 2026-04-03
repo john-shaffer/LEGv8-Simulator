@@ -57,9 +57,12 @@ public class TextLine {
 		String args = parts.length > 1 ? parts[1].trim() : "";
 		switch (name) {
 		case ".text":   return parseTextDirective(args);
+		case ".data":   return parseDataDirective(args);
 		case ".global": return parseGlobalDirective(args);
 		case ".arch":   return parseArchDirective(args);
 		case ".type":   return parseTypeDirective(args);
+		case ".size":   return parseSizeDirective(args);
+		case ".byte":   return parseByteDirective(args);
 		default: return "Unknown directive: '" + parts[0] + "'";
 		}
 	}
@@ -67,6 +70,13 @@ public class TextLine {
 	private String parseTextDirective(String args) {
 		if (!args.isEmpty()) {
 			return "Directive '.text' takes no arguments";
+		}
+		return null;
+	}
+
+	private String parseDataDirective(String args) {
+		if (!args.isEmpty()) {
+			return "Directive '.data' takes no arguments";
 		}
 		return null;
 	}
@@ -120,6 +130,81 @@ public class TextLine {
 		return null;
 	}
 
+	// Expects:  .size  <symbol>, <size_expr>
+	private String parseSizeDirective(String args) {
+		if (args.isEmpty()) {
+			return "Directive '.size' requires arguments";
+		}
+		int comma = args.indexOf(',');
+		if (comma < 0) {
+			return "Directive '.size' expects '<symbol>, <size>'";
+		}
+		String symbol = args.substring(0, comma).trim();
+		if (!isValidIdentifier(symbol)) {
+			return "Directive '.size': invalid symbol name '" + symbol + "'";
+		}
+		if (args.substring(comma + 1).trim().isEmpty()) {
+			return "Directive '.size': missing size value";
+		}
+		return null;
+	}
+
+	// Expects:  .byte  val, val, ...  where each val is a char literal or integer.
+	private String parseByteDirective(String args) {
+		if (args.isEmpty()) {
+			return "Directive '.byte' requires at least one value";
+		}
+		String[] values = args.split(",");
+		byte[] bytes = new byte[values.length];
+		for (int i = 0; i < values.length; i++) {
+			String val = values[i].trim();
+			try {
+				bytes[i] = parseByteValue(val);
+			} catch (IllegalArgumentException e) {
+				return "Directive '.byte': " + e.getMessage();
+			}
+		}
+		dataBytes = bytes;
+		return null;
+	}
+
+	private static byte parseByteValue(String val) throws IllegalArgumentException {
+		// Character literal: 'x' or '\n' etc.
+		if (val.startsWith("'") && val.endsWith("'") && val.length() >= 3) {
+			String inner = val.substring(1, val.length() - 1);
+			if (inner.length() == 1) {
+				return (byte) inner.charAt(0);
+			}
+			if (inner.length() == 2 && inner.charAt(0) == '\\') {
+				switch (inner.charAt(1)) {
+				case 'n':  return (byte) '\n';
+				case 't':  return (byte) '\t';
+				case 'r':  return (byte) '\r';
+				case '0':  return (byte) 0;
+				case '\\': return (byte) '\\';
+				case '\'': return (byte) '\'';
+				default: throw new IllegalArgumentException("unknown escape '\\" + inner.charAt(1) + "'");
+				}
+			}
+			throw new IllegalArgumentException("invalid character literal '" + val + "'");
+		}
+		// Numeric (decimal or hex)
+		try {
+			int n = Integer.decode(val);
+			if (n < -128 || n > 255) {
+				throw new IllegalArgumentException("value " + val + " out of byte range (-128..255)");
+			}
+			return (byte) n;
+		} catch (NumberFormatException e) {
+			throw new IllegalArgumentException("invalid byte value '" + val + "'");
+		}
+	}
+
+	/** Returns the parsed byte values for a {@code .byte} directive, or {@code null} for all other lines. */
+	public byte[] getDataBytes() {
+		return dataBytes;
+	}
+
 	private static boolean isValidIdentifier(String s) {
 		if (s.isEmpty()) return false;
 		char first = s.charAt(0);
@@ -130,6 +215,8 @@ public class TextLine {
 		}
 		return true;
 	}
+
+	private byte[] dataBytes = null;
 
 	public String parse() {
 		if (lineNoComment.trim().startsWith(".")) {

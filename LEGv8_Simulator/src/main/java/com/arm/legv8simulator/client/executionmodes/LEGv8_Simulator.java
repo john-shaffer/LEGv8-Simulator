@@ -13,6 +13,7 @@ import com.arm.legv8simulator.client.instruction.Mnemonic;
 import com.arm.legv8simulator.client.instruction.UndefinedLabelException;
 import com.arm.legv8simulator.client.lexer.TextLine;
 import com.arm.legv8simulator.client.memory.Memory;
+import com.arm.legv8simulator.client.memory.SegmentFaultException;
 
 /**
  * <code>LEGv8_Simulator</code> is the base class from which all simulator/execution modes are derived.
@@ -38,8 +39,29 @@ public abstract class LEGv8_Simulator {
 		populateBranchTable();
 		decodeInstructions();
 		memory = new Memory(cpuInstructions.size());
+		loadDataSection();
 	}
 	
+	/**
+	 * Writes bytes from {@code .byte} directives into the data segment of memory,
+	 * starting at {@link Memory#DYNAMIC_DATA_SEGMENT_OFFSET}.
+	 */
+	public void loadDataSection() {
+		long address = Memory.DYNAMIC_DATA_SEGMENT_OFFSET;
+		for (int i = 0; i < code.size(); i++) {
+			byte[] bytes = code.get(i).getDataBytes();
+			if (bytes == null) continue;
+			for (byte b : bytes) {
+				try {
+					memory.storeByte(address++, b & 0xFFL);
+				} catch (SegmentFaultException e) {
+					compileErrors.add(new Error("Data section too large: " + e.getMessage(), i));
+					return;
+				}
+			}
+		}
+	}
+
 	/**
 	 * For each line of source code: attempt to generate tokens and then parse.
 	 */
