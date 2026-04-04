@@ -210,6 +210,7 @@ public enum ParserState {
             	case XREGISTER : return RRR6;
             	case WREGISTER : return RRR6;
             	case RELOCATION : return RRR6;
+            	case IMMEDIATE : return RRR6;
             	default : throw new InvalidTokenException(expected[0]);
             }
         }

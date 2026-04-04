@@ -55,6 +55,12 @@ public class Decoder {
 		return true;
 	}
 
+	private static boolean isImmediateArg(String s) {
+		if (s == null || s.isEmpty()) return false;
+		char c = s.charAt(0);
+		return c == '#' || c == '-' || Character.isDigit(c);
+	}
+
 	private static boolean isWordOperation(ArrayList<String> args) {
 		for (String arg : args) {
 			if (isWordRegister(arg)) return true;
@@ -85,8 +91,14 @@ public class Decoder {
 			if (args.size() >= 3 && args.get(2).startsWith(":lo12:")) {
 				return new Instruction(Mnemonic.ADDI, decodeLo12Args(args, dataLabelTable), lineNumber, ControlUnitConfiguration.RRI);
 			}
+			if (args.size() >= 3 && isImmediateArg(args.get(2))) {
+				return new Instruction(Mnemonic.ADDI, decodeRRIArithmeticArgs(args), lineNumber, ControlUnitConfiguration.RRI);
+			}
 			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber, ControlUnitConfiguration.RRR);
 		case ADDS :
+			if (args.size() >= 3 && isImmediateArg(args.get(2))) {
+				return new Instruction(Mnemonic.ADDIS, decodeRRIArithmeticArgs(args), lineNumber, ControlUnitConfiguration.RRI_FLAGS);
+			}
 			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber, ControlUnitConfiguration.RRR_FLAGS);
 		case ADDI :
 			return new Instruction(mnemonic, decodeRRIArithmeticArgs(args), lineNumber, ControlUnitConfiguration.RRI);
@@ -103,26 +115,44 @@ public class Decoder {
 		case SDIV :
 			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber, ControlUnitConfiguration.RRR);
 		case SUB :
+			if (args.size() >= 3 && isImmediateArg(args.get(2))) {
+				return new Instruction(Mnemonic.SUBI, decodeRRIArithmeticArgs(args), lineNumber, ControlUnitConfiguration.RRI);
+			}
 			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber, ControlUnitConfiguration.RRR);
 		case SUBS :
+			if (args.size() >= 3 && isImmediateArg(args.get(2))) {
+				return new Instruction(Mnemonic.SUBIS, decodeRRIArithmeticArgs(args), lineNumber, ControlUnitConfiguration.RRI_FLAGS);
+			}
 			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber, ControlUnitConfiguration.RRR_FLAGS);
 		case SUBI :
 			return new Instruction(mnemonic, decodeRRIArithmeticArgs(args), lineNumber, ControlUnitConfiguration.RRI);
 		case SUBIS :
 			return new Instruction(mnemonic, decodeRRIArithmeticArgs(args), lineNumber, ControlUnitConfiguration.RRI_FLAGS);
 		case AND :
+			if (args.size() >= 3 && isImmediateArg(args.get(2))) {
+				return new Instruction(Mnemonic.ANDI, decodeRRILogicalArgs(args), lineNumber, ControlUnitConfiguration.RRI);
+			}
 			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber, ControlUnitConfiguration.RRR);
 		case ANDS :
+			if (args.size() >= 3 && isImmediateArg(args.get(2))) {
+				return new Instruction(Mnemonic.ANDIS, decodeRRILogicalArgs(args), lineNumber, ControlUnitConfiguration.RRI_FLAGS);
+			}
 			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber, ControlUnitConfiguration.RRR_FLAGS);
 		case ANDI :
 			return new Instruction(mnemonic, decodeRRILogicalArgs(args), lineNumber, ControlUnitConfiguration.RRI);
 		case ANDIS :
 			return new Instruction(mnemonic, decodeRRILogicalArgs(args), lineNumber, ControlUnitConfiguration.RRI_FLAGS);
 		case ORR :
+			if (args.size() >= 3 && isImmediateArg(args.get(2))) {
+				return new Instruction(Mnemonic.ORRI, decodeRRILogicalArgs(args), lineNumber, ControlUnitConfiguration.RRI);
+			}
 			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber, ControlUnitConfiguration.RRR);
 		case ORRI :
 			return new Instruction(mnemonic, decodeRRILogicalArgs(args), lineNumber, ControlUnitConfiguration.RRI);
 		case EOR :
+			if (args.size() >= 3 && isImmediateArg(args.get(2))) {
+				return new Instruction(Mnemonic.EORI, decodeRRILogicalArgs(args), lineNumber, ControlUnitConfiguration.RRI);
+			}
 			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber, ControlUnitConfiguration.RRR);
 		case EORI :
 			return new Instruction(mnemonic, decodeRRILogicalArgs(args), lineNumber, ControlUnitConfiguration.RRI);
