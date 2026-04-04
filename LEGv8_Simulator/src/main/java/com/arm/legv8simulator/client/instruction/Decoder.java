@@ -82,6 +82,9 @@ public class Decoder {
 					throws UndefinedLabelException, ImmediateOutOfBoundsException {
 		switch (mnemonic) {
 		case ADD :
+			if (args.size() >= 3 && args.get(2).startsWith(":lo12:")) {
+				return new Instruction(Mnemonic.ADDI, decodeLo12Args(args, dataLabelTable), lineNumber, ControlUnitConfiguration.RRI);
+			}
 			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber, ControlUnitConfiguration.RRR);
 		case ADDS :
 			return new Instruction(mnemonic, decodeRRRArgs(args), lineNumber, ControlUnitConfiguration.RRR_FLAGS);
@@ -363,6 +366,22 @@ public class Decoder {
 			} catch (com.google.gwt.core.client.JavaScriptException jse) {
 				throw new UndefinedLabelException(label);
 			}
+		}
+		return operands;
+	}
+
+	// Decodes  ADD Xd, Xn, :lo12:label  →  ADDI Xd, Xn, #(address & 0xFFF)
+	private static int[] decodeLo12Args(ArrayList<String> args, HashMap<String, Long> dataLabelTable)
+			throws UndefinedLabelException {
+		int[] operands = new int[3];
+		operands[0] = decodeRegister(args.get(0));
+		operands[1] = decodeRegister(args.get(1));
+		String relocExpr = args.get(2); // ":lo12:labelName"
+		String label = relocExpr.substring(":lo12:".length());
+		if (dataLabelTable != null && dataLabelTable.containsKey(label)) {
+			operands[2] = (int) (dataLabelTable.get(label) & 0xFFFL);
+		} else {
+			throw new UndefinedLabelException(label);
 		}
 		return operands;
 	}

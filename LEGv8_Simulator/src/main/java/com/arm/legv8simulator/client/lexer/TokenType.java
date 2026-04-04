@@ -43,7 +43,8 @@ public enum TokenType {
 	LABEL("[A-Za-z0-9_]+:", 25, "LABEL"),
 	IDENTIFIER("[A-Za-z0-9_]+", 26, "IDENTIFIER"),
 	WHITESPACE("[ \t]+", 27, "WHITESPACE"),
-	ERROR("[^\\s]+", 28, "ERROR");
+	RELOCATION(":lo12:[A-Za-z0-9_]+", 28, "RELOCATION"),
+	ERROR("[^\\s]+", 29, "ERROR");
 
 	/**
 	 * The regular expression pattern used to specify this <code>TokenType</code>
