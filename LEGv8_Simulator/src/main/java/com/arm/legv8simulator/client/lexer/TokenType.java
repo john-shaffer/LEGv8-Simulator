@@ -39,7 +39,7 @@ public enum TokenType {
 	DMNEMONIC_RM("LDURD[ \t]+|STURD[ \t]+|ldurd[ \t]+|sturd[ \t]+", 21, "DMNEMONIC"),
 	XMNEMONIC_RRM("STXR[ \t]+|stxr[ \t]+", 22, "XMNEMONIC"),
 	MNEMONIC_L("B\\.[GNL]E[ \t]+|B\\.[HL]S[ \t]+|B\\.[LG]T[ \t]+|B\\.LO[ \t]+|B\\.[MH]I[ \t]+|B\\.EQ[ \t]+|B\\.V[SC][ \t]+|B\\.PL[ \t]+|B[RL]?[ \t]+|b\\.[gnl]e[ \t]+|b\\.[hl]s[ \t]+|b\\.[lg]t[ \t]+|b\\.lo[ \t]+|b\\.[mh]i[ \t]+|b\\.eq[ \t]+|b\\.v[sc][ \t]+|b\\.pl[ \t]+|b[rl]?[ \t]+", 23, "MNEMONIC"),
-	XMNEMONIC_RL("CBN?Z[ \t]+|cbn?z[ \t]+|LDA[ \t]+|lda[ \t]+", 24, "XMNEMONIC"),
+	XMNEMONIC_RL("CBN?Z[ \t]+|cbn?z[ \t]+|LDA[ \t]+|lda[ \t]+|ADRP[ \t]+|adrp[ \t]+", 24, "XMNEMONIC"),
 	LABEL("[A-Za-z0-9_]+:", 25, "LABEL"),
 	IDENTIFIER("[A-Za-z0-9_]+", 26, "IDENTIFIER"),
 	WHITESPACE("[ \t]+", 27, "WHITESPACE"),

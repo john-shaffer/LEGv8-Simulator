@@ -421,6 +421,9 @@ public class CPU {
 		case LDA:
 			LDA(args[0], args[1]);
 			break;
+		case ADRP:
+			ADRP(args[0], args[1]);
+			break;
 		case BEQ :
 			BEQ(args[0]);
 			break;
@@ -536,6 +539,7 @@ public class CPU {
 		case STXR:
 		case FCMPS: case FCMPD:
 		case CBZ: case CBNZ:
+		case LDA: case ADRP:
 			break;
 		default:
 			XRegisterFile[destReg].writeDoubleWord(
@@ -926,6 +930,16 @@ public class CPU {
 		branchTaken = (XRegisterFile[conditionReg].readDoubleWord() != 0);
 	}
 	
+	private void ADRP(int destReg, int address) {
+		if (destReg == XZR) {
+			cpuLog.append("Ignored attempted assignment to XZR. \n");
+		} else {
+			long addr = (address & 0xFFFFFFFFL) & ~0xFFFL;
+			XRegisterFile[destReg].writeDoubleWord(addr);
+			cpuLog.append("ADRP \t X" + destReg + ", 0x" + Long.toHexString(addr) + "\n");
+		}
+	}
+
 	private void LDA(int destReg, long addressToLoad) {
 		if (destReg == XZR) {
 			cpuLog.append("Ignored attempted assignment to XZR. \n");

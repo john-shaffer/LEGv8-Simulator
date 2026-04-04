@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import com.arm.legv8simulator.client.cpu.CPU;
 import com.arm.legv8simulator.client.cpu.ControlUnitConfiguration;
+import com.arm.legv8simulator.client.memory.Memory;
 import com.google.gwt.core.client.JavaScriptException;
 
 /**
@@ -64,14 +65,20 @@ public class Decoder {
 	public static Instruction getInstruction(Mnemonic mnemonic, ArrayList<String> args,
 			int lineNumber, HashMap<String, Integer> branchTable)
 					throws UndefinedLabelException, ImmediateOutOfBoundsException {
+		return getInstruction(mnemonic, args, lineNumber, branchTable, null);
+	}
+
+	public static Instruction getInstruction(Mnemonic mnemonic, ArrayList<String> args,
+			int lineNumber, HashMap<String, Integer> branchTable, HashMap<String, Long> dataLabelTable)
+					throws UndefinedLabelException, ImmediateOutOfBoundsException {
 		boolean wordOp = isWordOperation(args);
-		Instruction inst = getInstructionInternal(mnemonic, args, lineNumber, branchTable);
+		Instruction inst = getInstructionInternal(mnemonic, args, lineNumber, branchTable, dataLabelTable);
 		if (inst != null && wordOp) inst.setWordOperation(true);
 		return inst;
 	}
 
 	private static Instruction getInstructionInternal(Mnemonic mnemonic, ArrayList<String> args,
-			int lineNumber, HashMap<String, Integer> branchTable)
+			int lineNumber, HashMap<String, Integer> branchTable, HashMap<String, Long> dataLabelTable)
 					throws UndefinedLabelException, ImmediateOutOfBoundsException {
 		switch (mnemonic) {
 		case ADD :
@@ -150,6 +157,8 @@ public class Decoder {
 			return new Instruction(mnemonic, decodeRLArgs(args, branchTable), lineNumber, ControlUnitConfiguration.RL);
 		case LDA :
 			return new Instruction(mnemonic, decodeRLArgs(args, branchTable), lineNumber, ControlUnitConfiguration.RL);
+		case ADRP :
+			return new Instruction(mnemonic, decodeADRPArgs(args, branchTable, dataLabelTable), lineNumber, ControlUnitConfiguration.RL);
 		case BEQ :
 			return new Instruction(mnemonic, decodeLArgs(args, branchTable), lineNumber, ControlUnitConfiguration.L_COND);
 		case BNE :
@@ -336,6 +345,28 @@ public class Decoder {
 		return operands;
 	}
 	
+	// Resolves a label to its address: data labels take priority over code labels.
+	// Data addresses (>= 0x10000000) fit safely in a positive int.
+	private static int[] decodeADRPArgs(ArrayList<String> args, HashMap<String, Integer> branchTable,
+			HashMap<String, Long> dataLabelTable) throws UndefinedLabelException {
+		int[] operands = new int[2];
+		operands[0] = decodeRegister(args.get(0));
+		String label = args.get(1);
+		if (dataLabelTable != null && dataLabelTable.containsKey(label)) {
+			operands[1] = (int) (long) dataLabelTable.get(label);
+		} else {
+			try {
+				int instrIndex = branchTable.get(label);
+				operands[1] = (int) (Memory.TEXT_SEGMENT_OFFSET + (long) instrIndex * CPU.INSTRUCTION_SIZE);
+			} catch (NullPointerException npe) {
+				throw new UndefinedLabelException(label);
+			} catch (com.google.gwt.core.client.JavaScriptException jse) {
+				throw new UndefinedLabelException(label);
+			}
+		}
+		return operands;
+	}
+
 	private static int[] decodeLArgs(ArrayList<String> args, HashMap<String, Integer> branchTable) 
 			throws UndefinedLabelException {
 		int[] instructionIndex = new int[1];

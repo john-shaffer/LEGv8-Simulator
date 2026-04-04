@@ -30,21 +30,43 @@ public abstract class LEGv8_Simulator {
 	 * @param code	the individual lines of LEGv8 source code from the text editor
 	 */
 	public LEGv8_Simulator(ArrayList<TextLine> code) {
-		this.code = code; 
+		this.code = code;
 		branchTable = new HashMap<String, Integer>();
+		dataLabelTable = new HashMap<String, Long>();
 		cpuInstructions = new ArrayList<Instruction>();
 		cpu = new CPU();
 		compileErrors = new ArrayList<Error>();
 		parseCode();
 		populateBranchTable();
+		buildDataLabelTable();
 		decodeInstructions();
 		memory = new Memory(cpuInstructions.size());
 		loadDataSection();
 	}
 	
 	/**
-	 * Writes bytes from {@code .byte} directives into the data segment of memory,
-	 * starting at {@link Memory#DYNAMIC_DATA_SEGMENT_OFFSET}.
+	 * First pass: walk the source before decoding instructions and record each
+	 * data-section label's memory address in {@link #dataLabelTable}.  No memory
+	 * object is needed yet — we just compute the addresses arithmetically.
+	 */
+	public void buildDataLabelTable() {
+		long address = Memory.DYNAMIC_DATA_SEGMENT_OFFSET;
+		boolean inDataSection = false;
+		for (TextLine line : code) {
+			String directive = line.getDirectiveName();
+			if (".data".equals(directive)) { inDataSection = true;  continue; }
+			if (".text".equals(directive)) { inDataSection = false; continue; }
+			if (inDataSection && line.getLabel() != null) {
+				dataLabelTable.put(line.getLabel(), address);
+			}
+			byte[] bytes = line.getDataBytes();
+			if (bytes != null) address += bytes.length;
+		}
+	}
+
+	/**
+	 * Second pass: write the {@code .byte} values into simulator memory.
+	 * Runs after the {@link Memory} object has been constructed.
 	 */
 	public void loadDataSection() {
 		long address = Memory.DYNAMIC_DATA_SEGMENT_OFFSET;
@@ -115,7 +137,7 @@ public abstract class LEGv8_Simulator {
 			if (line.getMnemonic() != null) {
 				try {
 					cpuInstructions.add(Decoder.getInstruction(
-							line.getMnemonic(), line.getArgs(), i, branchTable));
+							line.getMnemonic(), line.getArgs(), i, branchTable, dataLabelTable));
 				} catch (UndefinedLabelException ule) {
 					compileErrors.add(new Error(ule.getMessage(), i));
 				} catch (ImmediateOutOfBoundsException ioobe) {
@@ -237,6 +259,7 @@ public abstract class LEGv8_Simulator {
 	protected ArrayList<Error> compileErrors; 
 	protected Memory memory;
 	protected HashMap<String, Integer> branchTable;
+	protected HashMap<String, Long>    dataLabelTable;
 	protected ArrayList<Instruction> cpuInstructions;
 	protected CPU cpu;
 }

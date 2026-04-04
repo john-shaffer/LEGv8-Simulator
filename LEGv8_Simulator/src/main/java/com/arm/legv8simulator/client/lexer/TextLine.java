@@ -50,11 +50,17 @@ public class TextLine {
 	 * 
 	 * @return	the error message from the <code>Parser</code>; <code>null</code> if no error present.
 	 */
+	/** Returns the directive name (e.g. {@code ".data"}) for directive lines, or {@code null} otherwise. */
+	public String getDirectiveName() {
+		return directiveName;
+	}
+
 	private String parseDirective() {
 		String trimmed = lineNoComment.trim();
 		String[] parts = trimmed.split("[ \t]+", 2);
 		String name = parts[0].toLowerCase();
 		String args = parts.length > 1 ? parts[1].trim() : "";
+		directiveName = name;
 		switch (name) {
 		case ".text":   return parseTextDirective(args);
 		case ".data":   return parseDataDirective(args);
@@ -216,7 +222,8 @@ public class TextLine {
 		return true;
 	}
 
-	private byte[] dataBytes = null;
+	private byte[]  dataBytes     = null;
+	private String  directiveName = null;
 
 	public String parse() {
 		if (lineNoComment.trim().startsWith(".")) {
