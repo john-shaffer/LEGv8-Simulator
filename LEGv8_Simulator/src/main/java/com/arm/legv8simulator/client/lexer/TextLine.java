@@ -34,6 +34,39 @@ public class TextLine {
 		} else {
 			lineNoComment = line;
 		}
+		resolveFloatAlias();
+	}
+
+	// Rewrites bare float aliases (FMUL, FADD, FSUB, FDIV) to their S/D variants
+	// by peeking at the first register argument before tokenization happens.
+	private void resolveFloatAlias() {
+		String s = lineNoComment;
+		// Skip optional label (everything up to and including ':')
+		int start = 0;
+		int colon = s.indexOf(':');
+		if (colon >= 0) start = colon + 1;
+		// Skip leading whitespace to find mnemonic
+		int mStart = start;
+		while (mStart < s.length() && Character.isWhitespace(s.charAt(mStart))) mStart++;
+		// Need at least 4 chars for a bare alias name
+		if (mStart + 4 > s.length()) return;
+		String candidate = s.substring(mStart, mStart + 4);
+		String upper = candidate.toUpperCase();
+		if (!upper.equals("FMUL") && !upper.equals("FADD") && !upper.equals("FSUB") && !upper.equals("FDIV")) return;
+		// The 5th character must be whitespace (so FMULS/FMULD are not matched)
+		if (mStart + 4 < s.length() && !Character.isWhitespace(s.charAt(mStart + 4))) return;
+		// Peek at the first register argument to determine S or D
+		String args = s.substring(mStart + 4).trim();
+		if (args.isEmpty()) return;
+		char firstReg = Character.toUpperCase(args.charAt(0));
+		String suffix;
+		if      (firstReg == 'S') suffix = "S";
+		else if (firstReg == 'D') suffix = "D";
+		else return;
+		// Preserve original case
+		boolean isUpper = Character.isUpperCase(candidate.charAt(0));
+		String replacement = isUpper ? (upper + suffix) : (candidate.toLowerCase() + suffix.toLowerCase());
+		lineNoComment = s.substring(0, mStart) + replacement + s.substring(mStart + 4);
 	}
 	
 	/**
