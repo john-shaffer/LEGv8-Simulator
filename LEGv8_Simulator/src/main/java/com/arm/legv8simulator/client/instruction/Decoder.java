@@ -433,20 +433,46 @@ public class Decoder {
 		return instructionIndex;
 	}
 	
-	private static float parseFloatImmediate(String imm) {
-		if (imm.startsWith("#")) imm = imm.substring(1);
-		return Float.parseFloat(imm);
+	private static String stripHash(String imm) {
+		return imm.startsWith("#") ? imm.substring(1) : imm;
+	}
+
+	// Returns true if f can be encoded as an 8-bit VFP immediate for single precision.
+	// Valid values: ±1.cdefgh × 2^n, n∈{-3..4}, cdefgh = 4-bit mantissa (upper 4 of 23).
+	// In IEEE 754 terms: biased exponent in [124,131] and lower 19 mantissa bits all zero.
+	private static boolean isVFPEncodableFloat(float f) {
+		if (Float.isNaN(f) || Float.isInfinite(f)) return false;
+		int bits = Float.floatToIntBits(f);
+		int exp  = (bits >>> 23) & 0xFF;
+		int mant =  bits & 0x7FFFFF;
+		return exp >= 124 && exp <= 131 && (mant & 0x7FFFF) == 0;
+	}
+
+	// Same for double precision: biased 11-bit exponent in [1020,1027], lower 48 mantissa bits zero.
+	private static boolean isVFPEncodableDouble(double d) {
+		if (Double.isNaN(d) || Double.isInfinite(d)) return false;
+		long bits = Double.doubleToLongBits(d);
+		int  exp  = (int) ((bits >>> 52) & 0x7FFL);
+		long mant =  bits & 0x000FFFFFFFFFFFFFL;
+		return exp >= 1020 && exp <= 1027 && (mant & 0x0000FFFFFFFFFFFFL) == 0;
 	}
 
 	// args[0]=Sn, args[1]=float_imm  →  operands[0]=reg, operands[1]=floatBits
 	private static int[] decodeFMovSArgs(ArrayList<String> args) throws ImmediateOutOfBoundsException {
 		int[] operands = new int[2];
 		operands[0] = decodeRegister(args.get(0));
+		String immStr = args.get(1);
+		float f;
 		try {
-			operands[1] = Float.floatToIntBits(parseFloatImmediate(args.get(1)));
+			f = Float.parseFloat(stripHash(immStr));
 		} catch (NumberFormatException nfe) {
-			throw new ImmediateOutOfBoundsException(args.get(1), 0, 0);
+			throw new ImmediateOutOfBoundsException("Cannot parse float immediate: " + immStr, true);
 		}
+		if (!isVFPEncodableFloat(f)) {
+			throw new ImmediateOutOfBoundsException(
+				immStr + " is not a valid VFP immediate. Value must be ±(1.0+n/16)×2^e, n∈[0,15], e∈[-3,4].", true);
+		}
+		operands[1] = Float.floatToIntBits(f);
 		return operands;
 	}
 
@@ -454,14 +480,20 @@ public class Decoder {
 	private static int[] decodeFMovDArgs(ArrayList<String> args) throws ImmediateOutOfBoundsException {
 		int[] operands = new int[3];
 		operands[0] = decodeRegister(args.get(0));
+		String immStr = args.get(1);
+		double d;
 		try {
-			long bits = Double.doubleToLongBits(Double.parseDouble(
-					args.get(1).startsWith("#") ? args.get(1).substring(1) : args.get(1)));
-			operands[1] = (int) (bits >>> 32);
-			operands[2] = (int)  bits;
+			d = Double.parseDouble(stripHash(immStr));
 		} catch (NumberFormatException nfe) {
-			throw new ImmediateOutOfBoundsException(args.get(1), 0, 0);
+			throw new ImmediateOutOfBoundsException("Cannot parse float immediate: " + immStr, true);
 		}
+		if (!isVFPEncodableDouble(d)) {
+			throw new ImmediateOutOfBoundsException(
+				immStr + " is not a valid VFP immediate. Value must be ±(1.0+n/16)×2^e, n∈[0,15], e∈[-3,4].", true);
+		}
+		long bits = Double.doubleToLongBits(d);
+		operands[1] = (int) (bits >>> 32);
+		operands[2] = (int)  bits;
 		return operands;
 	}
 

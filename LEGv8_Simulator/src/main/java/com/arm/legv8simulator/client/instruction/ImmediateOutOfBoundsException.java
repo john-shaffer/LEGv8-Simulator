@@ -49,8 +49,14 @@ public class ImmediateOutOfBoundsException extends Exception {
     public ImmediateOutOfBoundsException() {
     }
 
+    /** Constructor for a fully custom error message. */
+    public ImmediateOutOfBoundsException(String customMessage, boolean raw) {
+        this.customMessage = customMessage;
+    }
+
     @Override
 	public String getMessage() {
+		if (customMessage != null) return customMessage;
 		if (cases == null) {
 			return "Illegal immediate value: " + illegalImm + ". Permitted range: " + lowerBound + " - " + upperBound + " inclusive.";
 		} else {
@@ -59,14 +65,15 @@ public class ImmediateOutOfBoundsException extends Exception {
 				msg += cases[i];
 				if (i<cases.length-1) {
 					msg += ", ";
-				}	
+				}
 			}
 			return msg;
 		}
 	}
-	
+
 	private String illegalImm;
 	private int lowerBound;
 	private int upperBound;
 	private int[] cases;
+	private String customMessage;
 }
