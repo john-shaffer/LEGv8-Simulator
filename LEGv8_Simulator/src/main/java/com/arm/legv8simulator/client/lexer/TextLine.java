@@ -69,6 +69,7 @@ public class TextLine {
 		case ".type":   return parseTypeDirective(args);
 		case ".size":   return parseSizeDirective(args);
 		case ".byte":   return parseByteDirective(args);
+		case ".float":  return parseFloatDirective(args);
 		default: return "Unknown directive: '" + parts[0] + "'";
 		}
 	}
@@ -206,7 +207,27 @@ public class TextLine {
 		}
 	}
 
-	/** Returns the parsed byte values for a {@code .byte} directive, or {@code null} for all other lines. */
+	// Expects:  .float  val  (single IEEE 754 32-bit value)
+	private String parseFloatDirective(String args) {
+		if (args.isEmpty()) {
+			return "Directive '.float' requires a value";
+		}
+		try {
+			float f = Float.parseFloat(args.trim());
+			int bits = Float.floatToIntBits(f);
+			dataBytes = new byte[] {
+				(byte) (bits >>> 24),
+				(byte) (bits >>> 16),
+				(byte) (bits >>>  8),
+				(byte)  bits
+			};
+			return null;
+		} catch (NumberFormatException e) {
+			return "Directive '.float': invalid value '" + args.trim() + "'";
+		}
+	}
+
+	/** Returns the parsed byte values for a {@code .byte} or {@code .float} directive, or {@code null} for all other lines. */
 	public byte[] getDataBytes() {
 		return dataBytes;
 	}
