@@ -34,11 +34,20 @@ public class TextLine {
 		} else {
 			lineNoComment = line;
 		}
+	}
+
+	/** Rewrites bare float/memory aliases (FMUL, FADD, FSUB, FDIV, FMOV, LDUR, STUR)
+	 *  to their S/D variants by peeking at the first register argument.
+	 *  Called by the simulator only when an ARMv8 .arch directive is present. */
+	public void applyAliases() {
 		resolveFloatAlias();
 	}
 
-	// Rewrites bare float aliases (FMUL, FADD, FSUB, FDIV) to their S/D variants
-	// by peeking at the first register argument before tokenization happens.
+	/** Returns the line with comments stripped, as seen by the lexer. */
+	public String getLineNoComment() {
+		return lineNoComment;
+	}
+
 	private void resolveFloatAlias() {
 		String s = lineNoComment;
 		// Skip optional label (everything up to and including ':')

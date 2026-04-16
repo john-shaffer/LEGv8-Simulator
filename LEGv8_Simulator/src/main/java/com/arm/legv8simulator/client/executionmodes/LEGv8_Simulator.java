@@ -36,7 +36,20 @@ public abstract class LEGv8_Simulator {
 		cpuInstructions = new ArrayList<Instruction>();
 		cpu = new CPU();
 		compileErrors = new ArrayList<Error>();
+		boolean armV8 = hasArmV8Arch();
+		if (armV8) {
+			for (TextLine line : this.code) line.applyAliases();
+		}
 		parseCode();
+		if (!armV8) {
+			for (int i = 0; i < code.size(); i++) {
+				Mnemonic m = code.get(i).getMnemonic();
+				if (m == Mnemonic.FMOVS || m == Mnemonic.FMOVD) {
+					compileErrors.add(new Error(
+						"'" + m.nameUpper + "' requires '.arch armv8'", i));
+				}
+			}
+		}
 		populateBranchTable();
 		buildDataLabelTable();
 		decodeInstructions();
@@ -44,6 +57,19 @@ public abstract class LEGv8_Simulator {
 		loadDataSection();
 	}
 	
+	private boolean hasArmV8Arch() {
+		for (TextLine line : code) {
+			String s = line.getLineNoComment().trim().toLowerCase();
+			if (s.startsWith(".arch")) {
+				String arch = s.substring(5).trim();
+				if (arch.startsWith("armv8")) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * First pass: walk the source before decoding instructions and record each
 	 * data-section label's memory address in {@link #dataLabelTable}.  No memory
