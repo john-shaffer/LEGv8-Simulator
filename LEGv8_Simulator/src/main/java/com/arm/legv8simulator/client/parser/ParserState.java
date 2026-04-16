@@ -33,6 +33,8 @@ public enum ParserState {
             	case XMNEMONIC_RISI : return XRISI1;
             	case MNEMONIC_L : return L1;
             	case XMNEMONIC_RL : return XRL1;
+            	case SMNEMONIC_RI : return SRI1;
+            	case DMNEMONIC_RI : return DRI1;
             	case LABEL : return G1;
             	default : throw new UnsupportedInstructionException(INIT);
             }
@@ -57,6 +59,8 @@ public enum ParserState {
             	case XMNEMONIC_RISI : return XRISI1;
             	case MNEMONIC_L : return L1;
             	case XMNEMONIC_RL : return XRL1;
+            	case SMNEMONIC_RI : return SRI1;
+            	case DMNEMONIC_RI : return DRI1;
             	default : throw new UnsupportedInstructionException(G1);
             }
         }
@@ -673,6 +677,68 @@ public enum ParserState {
         }
     },
     XRL4(true, null) { @Override
+    	public ParserState transition(Token t) throws UnexpectedTokenException {
+            throw new UnexpectedTokenException();
+        }
+    },
+    SRI1(false, new TokenType[]{TokenType.SREGISTER, TokenType.COMMA,
+    		TokenType.FLOAT_IMMEDIATE}) { @Override
+    	public ParserState transition(Token t) throws InvalidTokenException {
+            switch (t.getType()) {
+            	case SREGISTER : return SRI2;
+            	default : throw new InvalidTokenException(expected[0]);
+            }
+        }
+    },
+    SRI2(false, new TokenType[]{TokenType.COMMA, TokenType.FLOAT_IMMEDIATE}) { @Override
+    	public ParserState transition(Token t) throws InvalidTokenException {
+            switch (t.getType()) {
+            	case COMMA : return SRI3;
+            	default : throw new InvalidTokenException(expected[0]);
+            }
+        }
+    },
+    SRI3(false, new TokenType[]{TokenType.FLOAT_IMMEDIATE}) { @Override
+    	public ParserState transition(Token t) throws InvalidTokenException {
+            switch (t.getType()) {
+            	case FLOAT_IMMEDIATE : return SRI4;
+            	case IMMEDIATE       : return SRI4;
+            	default : throw new InvalidTokenException(expected[0]);
+            }
+        }
+    },
+    SRI4(true, null) { @Override
+    	public ParserState transition(Token t) throws UnexpectedTokenException {
+            throw new UnexpectedTokenException();
+        }
+    },
+    DRI1(false, new TokenType[]{TokenType.DREGISTER, TokenType.COMMA,
+    		TokenType.FLOAT_IMMEDIATE}) { @Override
+    	public ParserState transition(Token t) throws InvalidTokenException {
+            switch (t.getType()) {
+            	case DREGISTER : return DRI2;
+            	default : throw new InvalidTokenException(expected[0]);
+            }
+        }
+    },
+    DRI2(false, new TokenType[]{TokenType.COMMA, TokenType.FLOAT_IMMEDIATE}) { @Override
+    	public ParserState transition(Token t) throws InvalidTokenException {
+            switch (t.getType()) {
+            	case COMMA : return DRI3;
+            	default : throw new InvalidTokenException(expected[0]);
+            }
+        }
+    },
+    DRI3(false, new TokenType[]{TokenType.FLOAT_IMMEDIATE}) { @Override
+    	public ParserState transition(Token t) throws InvalidTokenException {
+            switch (t.getType()) {
+            	case FLOAT_IMMEDIATE : return DRI4;
+            	case IMMEDIATE       : return DRI4;
+            	default : throw new InvalidTokenException(expected[0]);
+            }
+        }
+    },
+    DRI4(true, null) { @Override
     	public ParserState transition(Token t) throws UnexpectedTokenException {
             throw new UnexpectedTokenException();
         }

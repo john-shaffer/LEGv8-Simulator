@@ -52,7 +52,7 @@ public class TextLine {
 		if (mStart + 4 > s.length()) return;
 		String candidate = s.substring(mStart, mStart + 4);
 		String upper = candidate.toUpperCase();
-		if (!upper.equals("FMUL") && !upper.equals("FADD") && !upper.equals("FSUB") && !upper.equals("FDIV")) return;
+		if (!upper.equals("FMUL") && !upper.equals("FADD") && !upper.equals("FSUB") && !upper.equals("FDIV") && !upper.equals("FMOV")) return;
 		// The 5th character must be whitespace (so FMULS/FMULD are not matched)
 		if (mStart + 4 < s.length() && !Character.isWhitespace(s.charAt(mStart + 4))) return;
 		// Peek at the first register argument to determine S or D
@@ -308,6 +308,7 @@ public class TextLine {
 			case SREGISTER : args.add(t.getData()); break;
 			case DREGISTER : args.add(t.getData()); break;
 			case IMMEDIATE : args.add(t.getData()); break;
+			case FLOAT_IMMEDIATE : args.add(t.getData()); break;
 			case IDENTIFIER : args.add(t.getData()); break;
 			case RELOCATION : args.add(t.getData()); break;
 			// following case should never occur - parser never accepts ERROR tokens
@@ -376,11 +377,15 @@ public class TextLine {
 			return formatRIArgs();
 		case XMNEMONIC_RRI : 
 			return formatRRIArgs();
-		case XMNEMONIC_RM : 
+		case SMNEMONIC_RI :
+			return formatRIArgs();
+		case DMNEMONIC_RI :
+			return formatRIArgs();
+		case XMNEMONIC_RM :
 			return formatRMArgs();
-		case SMNEMONIC_RM : 
+		case SMNEMONIC_RM :
 			return formatRMArgs();
-		case DMNEMONIC_RM : 
+		case DMNEMONIC_RM :
 			return formatRMArgs();
 		case XMNEMONIC_RRM : 
 			return formatRRMArgs();

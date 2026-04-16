@@ -80,6 +80,8 @@ public enum Mnemonic {
 	FMULD("FMULD", "fmuld", TokenType.DMNEMONIC_RRR, "00011110011", "0000"),
 	FSUBS("FSUBS", "fsubs", TokenType.SMNEMONIC_RRR, "00011110001", "0001"),
 	FSUBD("FSUBD", "fsubd", TokenType.DMNEMONIC_RRR, "00011110011", "0001"),
+	FMOVS("FMOVS", "fmovs", TokenType.SMNEMONIC_RI, null, null),
+	FMOVD("FMOVD", "fmovd", TokenType.DMNEMONIC_RI, null, null),
 	STURS("STURS", "ldurs", TokenType.SMNEMONIC_RM, "10111100010", "0010"),
 	LDURS("LDURS", "ldurs", TokenType.SMNEMONIC_RM, "10111100000", "0010"),
 	STURD("STURD", "ldurd", TokenType.DMNEMONIC_RM, "11111100000", "0010"),

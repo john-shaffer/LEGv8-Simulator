@@ -260,6 +260,10 @@ public class Decoder {
 			return new Instruction(mnemonic, decodeRMArgs(args), lineNumber, ControlUnitConfiguration.RM_LOAD);
 		case STURD :
 			return new Instruction(mnemonic, decodeRMArgs(args), lineNumber, ControlUnitConfiguration.RM_STORE);
+		case FMOVS :
+			return new Instruction(mnemonic, decodeFMovSArgs(args), lineNumber, null);
+		case FMOVD :
+			return new Instruction(mnemonic, decodeFMovDArgs(args), lineNumber, null);
 		default : return null;
 		}
 	}
@@ -429,6 +433,38 @@ public class Decoder {
 		return instructionIndex;
 	}
 	
+	private static float parseFloatImmediate(String imm) {
+		if (imm.startsWith("#")) imm = imm.substring(1);
+		return Float.parseFloat(imm);
+	}
+
+	// args[0]=Sn, args[1]=float_imm  →  operands[0]=reg, operands[1]=floatBits
+	private static int[] decodeFMovSArgs(ArrayList<String> args) throws ImmediateOutOfBoundsException {
+		int[] operands = new int[2];
+		operands[0] = decodeRegister(args.get(0));
+		try {
+			operands[1] = Float.floatToIntBits(parseFloatImmediate(args.get(1)));
+		} catch (NumberFormatException nfe) {
+			throw new ImmediateOutOfBoundsException(args.get(1), 0, 0);
+		}
+		return operands;
+	}
+
+	// args[0]=Dn, args[1]=float_imm  →  operands[0]=reg, [1]=hi32, [2]=lo32
+	private static int[] decodeFMovDArgs(ArrayList<String> args) throws ImmediateOutOfBoundsException {
+		int[] operands = new int[3];
+		operands[0] = decodeRegister(args.get(0));
+		try {
+			long bits = Double.doubleToLongBits(Double.parseDouble(
+					args.get(1).startsWith("#") ? args.get(1).substring(1) : args.get(1)));
+			operands[1] = (int) (bits >>> 32);
+			operands[2] = (int)  bits;
+		} catch (NumberFormatException nfe) {
+			throw new ImmediateOutOfBoundsException(args.get(1), 0, 0);
+		}
+		return operands;
+	}
+
 	private static int decodeRegister(String reg) {
 
 		switch (reg) {

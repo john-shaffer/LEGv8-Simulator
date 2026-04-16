@@ -505,6 +505,12 @@ public class CPU {
 		case FCMPD :
 			FCMPD(args[0], args[1]);
 			break;
+		case FMOVS :
+			FMOVS(args[0], args[1]);
+			break;
+		case FMOVD :
+			FMOVD(args[0], args[1], args[2]);
+			break;
 		case STURD :
 			STURD(args[0], args[1], args[2], memory);
 			break;
@@ -538,6 +544,7 @@ public class CPU {
 		case STUR: case STURW: case STURH: case STURB: case STURS: case STURD:
 		case STXR:
 		case FCMPS: case FCMPD:
+		case FMOVS: case FMOVD:
 		case CBZ: case CBNZ:
 		case LDA: case ADRP:
 			break;
@@ -1196,6 +1203,17 @@ public class CPU {
 		cpuLog.append("Set flags + \n");
 	}
 	
+	private void FMOVS(int destReg, int floatBits) {
+		DRegisterFile[destReg].writeWord(floatBits);
+		cpuLog.append("FMOVS \t S" + destReg + ", " + Float.intBitsToFloat(floatBits) + "\n");
+	}
+
+	private void FMOVD(int destReg, int bitsHi, int bitsLo) {
+		long bits = ((long) bitsHi << 32) | (bitsLo & 0xFFFFFFFFL);
+		DRegisterFile[destReg].writeDoubleWord(bits);
+		cpuLog.append("FMOVD \t D" + destReg + ", " + Double.longBitsToDouble(bits) + "\n");
+	}
+
 	private void STURD(int valReg, int baseAddressReg, int offset, Memory memory) 
 			throws SegmentFaultException, SPAlignmentException {
 		if (baseAddressReg == SP) checkSPAlignment();
