@@ -52,7 +52,8 @@ public class TextLine {
 		if (mStart + 4 > s.length()) return;
 		String candidate = s.substring(mStart, mStart + 4);
 		String upper = candidate.toUpperCase();
-		if (!upper.equals("FMUL") && !upper.equals("FADD") && !upper.equals("FSUB") && !upper.equals("FDIV") && !upper.equals("FMOV")) return;
+		if (!upper.equals("FMUL") && !upper.equals("FADD") && !upper.equals("FSUB") && !upper.equals("FDIV") && !upper.equals("FMOV")
+				&& !upper.equals("LDUR") && !upper.equals("STUR")) return;
 		// The 5th character must be whitespace (so FMULS/FMULD are not matched)
 		if (mStart + 4 < s.length() && !Character.isWhitespace(s.charAt(mStart + 4))) return;
 		// Peek at the first register argument to determine S or D
